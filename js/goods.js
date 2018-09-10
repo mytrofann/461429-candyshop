@@ -94,24 +94,24 @@ var PRODUCT_NUTRITION_FACTS = {
   ]
 };
 var NUMBER_OF_PRODUCTS = 26;
+var NUMBER_OF_PRODUCTS_BASKET = 3;
+
+function getRandomElement(list) {
+  return list[Math.floor(Math.random() * list.length)];
+}
+
+function getRandomInteger(min, max) {
+  return Math.floor(min + Math.random() * (max + 1 - min));
+}
+
+function getRandomLengthList(list) {
+  var begin = getRandomInteger(0, (list.length) / 2);
+  var end = getRandomInteger((list.length) / 2, list.length - 1);
+  return list.slice(begin, end);
+}
 
 // Функция, для создания массива из 26 сгенерированных объектов. Каждый объект массива представляет собой описание товара.
 function generateProducts() {
-
-  function getRandomElement(list) {
-    return list[Math.floor(Math.random() * list.length)];
-  }
-
-  function getRandomInteger(min, max) {
-    return Math.floor(min + Math.random() * (max + 1 - min));
-  }
-
-  function getRandomLengthList(list) {
-    var begin = getRandomInteger(0, (list.length) / 2);
-    var end = getRandomInteger((list.length) / 2, list.length - 1);
-    return list.slice(begin, end);
-  }
-
   var products = [];
   var oneProduct = {};
   for (var i = 0; i < NUMBER_OF_PRODUCTS; i++) {
@@ -143,18 +143,16 @@ var catalogLoad = catalogCards.querySelector('.catalog__load');
 catalogLoad.classList.add('visually-hidden');
 
 // Создайте DOM-элементы, соответствующие фотографиям и заполните их данными из массива
-
-// Скопировать catalog__card в разметку
-var template = document.querySelector('#card').content.querySelector('.catalog__card');
+var templateCatalogCard = document.querySelector('#card').content.querySelector('.catalog__card');
 
 function renderProducts(products) {
   var fragment = document.createDocumentFragment();
   for (var i = 0; i < products.length; i++) {
-    var productsItem = template.cloneNode(true);
+    var productsItem = templateCatalogCard.cloneNode(true);
     var amount = products[i].amount;
+    var sugar = products[i].nutritionFacts.sugar;
     fragment.appendChild(productsItem);
 
-    // в зависимости от количества amount добавьте следующий класс:
     if (amount > 5) {
       productsItem.classList.add('card--in-stock');
     } else if (amount >= 1 && amount <= 5) {
@@ -162,16 +160,11 @@ function renderProducts(products) {
     } else {
       productsItem.classList.add('card--soon');
     }
-
-    // название вставьте в блок card__title
     productsItem.querySelector('.card__title').textContent = products[i].name;
     productsItem.querySelector('img').src = products[i].picture;
-
-    // содержимое блока card__price должно выглядеть следующим образом
     productsItem.querySelector('.card__price').innerHTML = '';
     productsItem.querySelector('.card__price').insertAdjacentHTML('afterBegin', products[i].price + '<span class="card__currency">₽</span><span class="card__weight">/' + products[i].weight + 'Г</span>');
 
-    // класс блока stars__rating должен соответствовать рейтингу. В зависимости от рейтинга, блоку должен выставляться класс
     var getStarsRating = function (rating) {
       var starsRating = '';
       switch (rating) {
@@ -192,21 +185,50 @@ function renderProducts(products) {
       }
       return starsRating;
     };
-
     productsItem.querySelector('.stars__rating').classList.add(getStarsRating(products[i].rating.value));
-
-    // В блок star__count вставьте значение rating.number
     productsItem.querySelector('.star__count').textContent = products[i].rating.number;
-
-    // Блок card__characteristic должен формироваться следующим образом:
-    // 1. В зависимости от значения nutritionFacts.sugar, должно выводиться сообщение Без сахара или Содержит сахар;
-    var sugar = products[i].nutritionFacts.sugar;
     productsItem.querySelector('.card__characteristic').textContent = sugar ? 'Содержит сахар' : 'Без сахара';
-
-    // 2. card__composition-list должен содержать состав
     productsItem.querySelector('.card__composition-list').textContent = products[i].nutritionFacts.contents;
   }
-
   catalogCards.appendChild(fragment);
 }
 renderProducts(generateProducts());
+
+// По аналогии с исходным массивом данных создайте ещё один массив, состоящий из трёх элементов. Это будет массив объектов, который соответствует товарам, добавленным в корзину.
+var goodsCards = document.querySelector('.goods__cards');
+goodsCards.classList.remove('goods__cards--empty');
+var goodsCardEmpty = goodsCards.querySelector('.goods__card-empty');
+goodsCardEmpty.classList.add('visually-hidden');
+
+function generateProductsBasket() {
+  var productsBasket = [];
+  var oneProductBasket = {};
+
+  for (var i = 0; i < NUMBER_OF_PRODUCTS_BASKET; i++) {
+    oneProductBasket = {
+      name: getRandomElement(PRODUCT_NAMES),
+      picture: getRandomElement(PRODUCT_IMAGES),
+      price: getRandomInteger(PRODUCT_PRICE.min, PRODUCT_PRICE.max)
+    };
+    productsBasket.push(oneProductBasket);
+  }
+  return productsBasket;
+}
+
+// На основе шаблона goods_card создайте DOM-элементы товаров, добавленных в корзину.
+var templateCardOrder = document.querySelector('#card-order').content.querySelector('.goods_card');
+
+function renderProductsBasket(productsBasket) {
+  var fragment = document.createDocumentFragment();
+
+  for (var i = 0; i < productsBasket.length; i++) {
+    var productsItemBasket = templateCardOrder.cloneNode(true);
+    fragment.appendChild(productsItemBasket);
+    productsItemBasket.querySelector('.card-order__title').textContent = productsBasket[i].name;
+    productsItemBasket.querySelector('img').src = productsBasket[i].picture;
+    productsItemBasket.querySelector('.card-order__price').innerHTML = '';
+    productsItemBasket.querySelector('.card-order__price').insertAdjacentHTML('afterBegin', productsBasket[i].price + ' ₽');
+  }
+  goodsCards.appendChild(fragment);
+}
+renderProductsBasket(generateProductsBasket());
