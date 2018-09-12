@@ -96,22 +96,22 @@ var PRODUCT_NUTRITION_FACTS = {
 var NUMBER_OF_PRODUCTS = 26;
 var NUMBER_OF_PRODUCTS_BASKET = 3;
 
-function getRandomElement(list) {
+var getRandomElement = function (list) {
   return list[Math.floor(Math.random() * list.length)];
-}
+};
 
-function getRandomInteger(min, max) {
+var getRandomInteger = function (min, max) {
   return Math.floor(min + Math.random() * (max + 1 - min));
-}
+};
 
-function getRandomLengthList(list) {
+var getRandomLengthList = function (list) {
   var begin = getRandomInteger(0, (list.length) / 2);
   var end = getRandomInteger((list.length) / 2, list.length - 1);
   return list.slice(begin, end);
-}
+};
 
 // Функция, для создания массива из 26 сгенерированных объектов. Каждый объект массива представляет собой описание товара.
-function generateProducts() {
+var generateProductsCatalog = function () {
   var products = [];
   var oneProduct = {};
   for (var i = 0; i < NUMBER_OF_PRODUCTS; i++) {
@@ -134,7 +134,7 @@ function generateProducts() {
     products.push(oneProduct);
   }
   return products;
-}
+};
 
 // Убераем у блока catalog__cards класс catalog__cards--load и скрываем, добавлением класса visually-hidden блок catalog__load.
 var catalogCards = document.querySelector('.catalog__cards');
@@ -145,90 +145,86 @@ catalogLoad.classList.add('visually-hidden');
 // Создайте DOM-элементы, соответствующие фотографиям и заполните их данными из массива
 var templateCatalogCard = document.querySelector('#card').content.querySelector('.catalog__card');
 
-function renderProducts(products) {
-  var fragment = document.createDocumentFragment();
-  for (var i = 0; i < products.length; i++) {
-    var productsItem = templateCatalogCard.cloneNode(true);
-    var amount = products[i].amount;
-    var sugar = products[i].nutritionFacts.sugar;
-    fragment.appendChild(productsItem);
+var renderProductsCatalog = function (product, productsItem) {
+  var amount = product.amount;
+  var sugar = product.nutritionFacts.sugar;
 
-    if (amount > 5) {
-      productsItem.classList.add('card--in-stock');
-    } else if (amount >= 1 && amount <= 5) {
-      productsItem.classList.add('card--little');
-    } else {
-      productsItem.classList.add('card--soon');
-    }
-    productsItem.querySelector('.card__title').textContent = products[i].name;
-    productsItem.querySelector('img').src = products[i].picture;
-    productsItem.querySelector('.card__price').innerHTML = '';
-    productsItem.querySelector('.card__price').insertAdjacentHTML('afterBegin', products[i].price + '<span class="card__currency">₽</span><span class="card__weight">/' + products[i].weight + 'Г</span>');
-
-    var getStarsRating = function (rating) {
-      var starsRating = '';
-      switch (rating) {
-        case 1:
-          starsRating = 'stars__rating--one';
-          break;
-        case 2:
-          starsRating = 'stars__rating--two';
-          break;
-        case 3:
-          starsRating = 'stars__rating--three';
-          break;
-        case 4:
-          starsRating = 'stars__rating--four';
-          break;
-        case 5:
-          starsRating = 'stars__rating--five';
-      }
-      return starsRating;
-    };
-    productsItem.querySelector('.stars__rating').classList.add(getStarsRating(products[i].rating.value));
-    productsItem.querySelector('.star__count').textContent = products[i].rating.number;
-    productsItem.querySelector('.card__characteristic').textContent = sugar ? 'Содержит сахар' : 'Без сахара';
-    productsItem.querySelector('.card__composition-list').textContent = products[i].nutritionFacts.contents;
+  if (amount > 5) {
+    productsItem.classList.add('card--in-stock');
+  } else if (amount >= 1) {
+    productsItem.classList.add('card--little');
+  } else {
+    productsItem.classList.add('card--soon');
   }
-  catalogCards.appendChild(fragment);
-}
-renderProducts(generateProducts());
+  productsItem.querySelector('.card__title').textContent = product.name;
+  productsItem.querySelector('img').src = product.picture;
+  productsItem.querySelector('.card__price').innerHTML = '';
+  productsItem.querySelector('.card__price').innerHTML = product.price + '<span class="card__currency">₽</span><span class="card__weight">/' + product.weight + 'Г</span>';
 
+  var getStarsRating = function (rating) {
+    var starsRating = '';
+    switch (rating) {
+      case 1:
+        starsRating = 'stars__rating--one';
+        break;
+      case 2:
+        starsRating = 'stars__rating--two';
+        break;
+      case 3:
+        starsRating = 'stars__rating--three';
+        break;
+      case 4:
+        starsRating = 'stars__rating--four';
+        break;
+      case 5:
+        starsRating = 'stars__rating--five';
+    }
+    return starsRating;
+  };
+  productsItem.querySelector('.stars__rating').classList.add(getStarsRating(product.rating.value));
+  productsItem.querySelector('.star__count').textContent = product.rating.number;
+  productsItem.querySelector('.card__characteristic').textContent = sugar ? 'Содержит сахар' : 'Без сахара';
+  productsItem.querySelector('.card__composition-list').textContent = product.nutritionFacts.contents;
+};
 // По аналогии с исходным массивом данных создайте ещё один массив, состоящий из трёх элементов. Это будет массив объектов, который соответствует товарам, добавленным в корзину.
 var goodsCards = document.querySelector('.goods__cards');
 goodsCards.classList.remove('goods__cards--empty');
 var goodsCardEmpty = goodsCards.querySelector('.goods__card-empty');
 goodsCardEmpty.classList.add('visually-hidden');
 
-function generateProductsBasket() {
-  var productsBasket = [];
-  var oneProductBasket = {};
+var generateProductsOrder = function () {
+  var productsOrder = [];
+  var oneProductOrder = {};
 
   for (var i = 0; i < NUMBER_OF_PRODUCTS_BASKET; i++) {
-    oneProductBasket = {
+    oneProductOrder = {
       name: getRandomElement(PRODUCT_NAMES),
       picture: getRandomElement(PRODUCT_IMAGES),
       price: getRandomInteger(PRODUCT_PRICE.min, PRODUCT_PRICE.max)
     };
-    productsBasket.push(oneProductBasket);
+    productsOrder.push(oneProductOrder);
   }
-  return productsBasket;
-}
+  return productsOrder;
+};
 
 // На основе шаблона goods_card создайте DOM-элементы товаров, добавленных в корзину.
-var templateCardOrder = document.querySelector('#card-order').content.querySelector('.goods_card');
+var templateOrderCard = document.querySelector('#card-order').content.querySelector('.goods_card');
 
-function renderProductsBasket(productsBasket) {
+var renderProductsOrder = function (product, productsItem) {
+  productsItem.querySelector('.card-order__title').textContent = product.name;
+  productsItem.querySelector('img').src = product.picture;
+  productsItem.querySelector('.card-order__price').innerHTML = '';
+  productsItem.querySelector('.card-order__price').textContent = product.price + ' ₽';
+};
+
+var getFragment = function (products, cards, render, template) {
   var fragment = document.createDocumentFragment();
-
-  for (var i = 0; i < productsBasket.length; i++) {
-    var productsItemBasket = templateCardOrder.cloneNode(true);
-    fragment.appendChild(productsItemBasket);
-    productsItemBasket.querySelector('.card-order__title').textContent = productsBasket[i].name;
-    productsItemBasket.querySelector('img').src = productsBasket[i].picture;
-    productsItemBasket.querySelector('.card-order__price').innerHTML = '';
-    productsItemBasket.querySelector('.card-order__price').insertAdjacentHTML('afterBegin', productsBasket[i].price + ' ₽');
+  for (var i = 0; i < products.length; i++) {
+    var productsItem = template.cloneNode(true);
+    fragment.appendChild(productsItem);
+    render(products[i], productsItem);
   }
-  goodsCards.appendChild(fragment);
-}
-renderProductsBasket(generateProductsBasket());
+  cards.appendChild(fragment);
+};
+getFragment(generateProductsCatalog(), catalogCards, renderProductsCatalog, templateCatalogCard);
+getFragment(generateProductsOrder(), goodsCards, renderProductsOrder, templateOrderCard);
