@@ -204,14 +204,14 @@ var renderProductsOrder = function (product, productsItem) {
   productsItem.querySelector('.card-order__price').textContent = product.price + ' ₽';
 };
 
-var renderElementsByTemplate = function (products, link, render, template) {
+var renderElementsByTemplate = function (products, block, render, template) {
   var fragment = document.createDocumentFragment();
   for (var i = 0; i < products.length; i++) {
     var productsItem = template.cloneNode(true);
     fragment.appendChild(productsItem);
     render(products[i], productsItem);
   }
-  link.appendChild(fragment);
+  block.appendChild(fragment);
 };
 renderElementsByTemplate(generateProducts(NUMBER_OF_PRODUCTS), catalogCards, renderProduct, templateCatalogCard);
 renderElementsByTemplate(generateProducts(NUMBER_OF_PRODUCTS_ORDER), goodsCards, renderProductsOrder, templateOrderCard);
