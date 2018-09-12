@@ -158,8 +158,10 @@ var renderProductsCatalog = function (product, productsItem) {
   }
   productsItem.querySelector('.card__title').textContent = product.name;
   productsItem.querySelector('img').src = product.picture;
-  productsItem.querySelector('.card__price').innerHTML = '';
-  productsItem.querySelector('.card__price').innerHTML = product.price + '<span class="card__currency">₽</span><span class="card__weight">/' + product.weight + 'Г</span>';
+  productsItem.querySelector('.card__price-block').innerHTML = '';
+  productsItem.querySelector('.card__price-block').insertAdjacentHTML('afterbegin', product.price);
+  productsItem.querySelector('.card__weight').innerHTML = '';
+  productsItem.querySelector('.card__weight').insertAdjacentHTML('afterbegin', '/ ' + product.weight + ' Г');
 
   var getStarsRating = function (rating) {
     var starsRating = '';
