@@ -94,7 +94,9 @@ var PRODUCT_NUTRITION_FACTS = {
   ]
 };
 var NUMBER_OF_PRODUCTS = 26;
-var NUMBER_OF_PRODUCTS_BASKET = 3;
+var NUMBER_OF_PRODUCTS_ORDER = 3;
+var AMOUNT_LITTLE = 1;
+var AMOUNT_STOCK = 5;
 
 var getRandomElement = function (list) {
   return list[Math.floor(Math.random() * list.length)];
@@ -111,10 +113,10 @@ var getRandomLengthList = function (list) {
 };
 
 // Функция, для создания массива из 26 сгенерированных объектов. Каждый объект массива представляет собой описание товара.
-var generateProductsCatalog = function () {
+var generateProducts = function (amount) {
   var products = [];
   var oneProduct = {};
-  for (var i = 0; i < NUMBER_OF_PRODUCTS; i++) {
+  for (var i = 0; i < amount; i++) {
     oneProduct = {
       name: getRandomElement(PRODUCT_NAMES),
       picture: getRandomElement(PRODUCT_IMAGES),
@@ -135,7 +137,6 @@ var generateProductsCatalog = function () {
   }
   return products;
 };
-
 // Убераем у блока catalog__cards класс catalog__cards--load и скрываем, добавлением класса visually-hidden блок catalog__load.
 var catalogCards = document.querySelector('.catalog__cards');
 catalogCards.classList.remove('catalog__cards--load');
@@ -145,13 +146,13 @@ catalogLoad.classList.add('visually-hidden');
 // Создайте DOM-элементы, соответствующие фотографиям и заполните их данными из массива
 var templateCatalogCard = document.querySelector('#card').content.querySelector('.catalog__card');
 
-var renderProductsCatalog = function (product, productsItem) {
+var renderProduct = function (product, productsItem) {
   var amount = product.amount;
   var sugar = product.nutritionFacts.sugar;
 
-  if (amount > 5) {
+  if (amount > AMOUNT_STOCK) {
     productsItem.classList.add('card--in-stock');
-  } else if (amount >= 1) {
+  } else if (amount >= AMOUNT_LITTLE) {
     productsItem.classList.add('card--little');
   } else {
     productsItem.classList.add('card--soon');
@@ -159,9 +160,9 @@ var renderProductsCatalog = function (product, productsItem) {
   productsItem.querySelector('.card__title').textContent = product.name;
   productsItem.querySelector('img').src = product.picture;
   productsItem.querySelector('.card__price-block').innerHTML = '';
-  productsItem.querySelector('.card__price-block').insertAdjacentHTML('afterbegin', product.price);
+  productsItem.querySelector('.card__price-block').textContent = product.price;
   productsItem.querySelector('.card__weight').innerHTML = '';
-  productsItem.querySelector('.card__weight').insertAdjacentHTML('afterbegin', '/ ' + product.weight + ' Г');
+  productsItem.querySelector('.card__weight').textContent = '/ ' + product.weight + ' Г';
 
   var getStarsRating = function (rating) {
     var starsRating = '';
@@ -194,39 +195,23 @@ goodsCards.classList.remove('goods__cards--empty');
 var goodsCardEmpty = goodsCards.querySelector('.goods__card-empty');
 goodsCardEmpty.classList.add('visually-hidden');
 
-var generateProductsOrder = function () {
-  var productsOrder = [];
-  var oneProductOrder = {};
-
-  for (var i = 0; i < NUMBER_OF_PRODUCTS_BASKET; i++) {
-    oneProductOrder = {
-      name: getRandomElement(PRODUCT_NAMES),
-      picture: getRandomElement(PRODUCT_IMAGES),
-      price: getRandomInteger(PRODUCT_PRICE.min, PRODUCT_PRICE.max)
-    };
-    productsOrder.push(oneProductOrder);
-  }
-  return productsOrder;
-};
-
 // На основе шаблона goods_card создайте DOM-элементы товаров, добавленных в корзину.
 var templateOrderCard = document.querySelector('#card-order').content.querySelector('.goods_card');
 
 var renderProductsOrder = function (product, productsItem) {
   productsItem.querySelector('.card-order__title').textContent = product.name;
   productsItem.querySelector('img').src = product.picture;
-  productsItem.querySelector('.card-order__price').innerHTML = '';
   productsItem.querySelector('.card-order__price').textContent = product.price + ' ₽';
 };
 
-var getFragment = function (products, cards, render, template) {
+var renderElementsByTemplate = function (products, link, render, template) {
   var fragment = document.createDocumentFragment();
   for (var i = 0; i < products.length; i++) {
     var productsItem = template.cloneNode(true);
     fragment.appendChild(productsItem);
     render(products[i], productsItem);
   }
-  cards.appendChild(fragment);
+  link.appendChild(fragment);
 };
-getFragment(generateProductsCatalog(), catalogCards, renderProductsCatalog, templateCatalogCard);
-getFragment(generateProductsOrder(), goodsCards, renderProductsOrder, templateOrderCard);
+renderElementsByTemplate(generateProducts(NUMBER_OF_PRODUCTS), catalogCards, renderProduct, templateCatalogCard);
+renderElementsByTemplate(generateProducts(NUMBER_OF_PRODUCTS_ORDER), goodsCards, renderProductsOrder, templateOrderCard);
