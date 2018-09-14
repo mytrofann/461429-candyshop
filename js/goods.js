@@ -159,9 +159,7 @@ var renderProduct = function (product, productsItem) {
   }
   productsItem.querySelector('.card__title').textContent = product.name;
   productsItem.querySelector('img').src = product.picture;
-  productsItem.querySelector('.card__price-block').innerHTML = '';
   productsItem.querySelector('.card__price-block').textContent = product.price;
-  productsItem.querySelector('.card__weight').innerHTML = '';
   productsItem.querySelector('.card__weight').textContent = '/ ' + product.weight + ' Г';
 
   var getStarsRating = function (rating) {
@@ -215,3 +213,22 @@ var renderElementsByTemplate = function (products, block, render, template) {
 };
 renderElementsByTemplate(generateProducts(NUMBER_OF_PRODUCTS), catalogCards, renderProduct, templateCatalogCard);
 renderElementsByTemplate(generateProducts(NUMBER_OF_PRODUCTS_ORDER), goodsCards, renderProductsOrder, templateOrderCard);
+
+// Добавление выбранного товара в избранное
+// При нажатии кнопки card__btn-favorite
+// добавить товар в избранное. После добавления в избранное,
+// кнопка переключается в состояние, показывающее, что товар находится в избранном.
+// Повторное нажатие на кнопку card__btn-favorite
+// удаляет карточку из избранного
+var cardBtnFavorite = document.querySelectorAll('.card__btn-favorite');
+for (var i = 0; i < cardBtnFavorite.length; i++) {
+  cardBtnFavorite[i].addEventListener('click', function () {
+    var cardBtnFavoriteSelected = cardBtnFavorite[i].classList.contains('card__btn-favorite--selected');
+    if (cardBtnFavoriteSelected) {
+      cardBtnFavorite[i].classList.remove('card__btn-favorite--selected');
+    } else {
+      cardBtnFavorite[i].classList.add('card__btn-favorite--selected');
+    }
+  }
+  );
+}
