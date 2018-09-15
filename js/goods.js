@@ -239,6 +239,7 @@ for (var i = 0; i < cardButtons.length; i++) {
   cardButtons[i].addEventListener('click', function (evt) {
     // карточка, соответствующая выбранному товару, добавляется в блок корзины.
     var index = evt.target.closest('article').dataset.id;
+    console.log(index);
     renderElementsByTemplate([products[index]], goodsCards, renderProductsOrder, templateOrderCard);
     // Надо скопировать карточку, на которой произошло событие и вставить в goodsCards
     // Если в корзине уже есть карточка, соответствующая выбранному товару /сравнить циклом по параметрам/, то
