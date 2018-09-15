@@ -215,7 +215,7 @@ var renderElementsByTemplate = function (products, block, render, template) {
   block.appendChild(fragment);
 };
 renderElementsByTemplate(generateProducts(NUMBER_OF_PRODUCTS), catalogCards, renderProduct, templateCatalogCard);
-renderElementsByTemplate(generateВProducts(NUMBER_OF_PRODUCTS_ORDER), goodsCards, renderProductsOrder, templateOrderCard);
+renderElementsByTemplate(generateProducts(NUMBER_OF_PRODUCTS_ORDER), goodsCards, renderProductsOrder, templateOrderCard);
 
 // Добавление выбранного товара в избранное
 var cardFavoriteButtons = document.querySelectorAll('.card__btn-favorite');
