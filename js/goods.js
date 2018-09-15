@@ -146,7 +146,7 @@ catalogLoad.classList.add('visually-hidden');
 // Создайте DOM-элементы, соответствующие фотографиям и заполните их данными из массива
 var templateCatalogCard = document.querySelector('#card').content.querySelector('.catalog__card');
 
-var renderProduct = function (product, productsItem) {
+var renderProduct = function (product, productsItem, index) {
   var amount = product.amount;
   var sugar = product.nutritionFacts.sugar;
 
@@ -159,6 +159,7 @@ var renderProduct = function (product, productsItem) {
   }
   productsItem.querySelector('.card__title').textContent = product.name;
   productsItem.querySelector('img').src = product.picture;
+  productsItem.querySelector('img').alt = product.name;
   productsItem.querySelector('.card__price-block').textContent = product.price;
   productsItem.querySelector('.card__weight').textContent = '/ ' + product.weight + ' Г';
 
@@ -186,6 +187,7 @@ var renderProduct = function (product, productsItem) {
   productsItem.querySelector('.star__count').textContent = product.rating.number;
   productsItem.querySelector('.card__characteristic').textContent = sugar ? 'Содержит сахар' : 'Без сахара';
   productsItem.querySelector('.card__composition-list').textContent = product.nutritionFacts.contents;
+  productsItem.setAttribute('data-id', index);
 };
 // По аналогии с исходным массивом данных создайте ещё один массив, состоящий из трёх элементов. Это будет массив объектов, который соответствует товарам, добавленным в корзину.
 var goodsCards = document.querySelector('.goods__cards');
@@ -199,6 +201,7 @@ var templateOrderCard = document.querySelector('#card-order').content.querySelec
 var renderProductsOrder = function (product, productsItem) {
   productsItem.querySelector('.card-order__title').textContent = product.name;
   productsItem.querySelector('img').src = product.picture;
+  productsItem.querySelector('img').alt = product.name;
   productsItem.querySelector('.card-order__price').textContent = product.price + ' ₽';
 };
 
@@ -207,28 +210,43 @@ var renderElementsByTemplate = function (products, block, render, template) {
   for (var i = 0; i < products.length; i++) {
     var productsItem = template.cloneNode(true);
     fragment.appendChild(productsItem);
-    render(products[i], productsItem);
+    render(products[i], productsItem, i);
   }
   block.appendChild(fragment);
 };
 renderElementsByTemplate(generateProducts(NUMBER_OF_PRODUCTS), catalogCards, renderProduct, templateCatalogCard);
-renderElementsByTemplate(generateProducts(NUMBER_OF_PRODUCTS_ORDER), goodsCards, renderProductsOrder, templateOrderCard);
+renderElementsByTemplate(generateВProducts(NUMBER_OF_PRODUCTS_ORDER), goodsCards, renderProductsOrder, templateOrderCard);
 
 // Добавление выбранного товара в избранное
-// При нажатии кнопки card__btn-favorite
-// добавить товар в избранное. После добавления в избранное,
-// кнопка переключается в состояние, показывающее, что товар находится в избранном.
-// Повторное нажатие на кнопку card__btn-favorite
-// удаляет карточку из избранного
-var cardBtnFavorite = document.querySelectorAll('.card__btn-favorite');
-for (var i = 0; i < cardBtnFavorite.length; i++) {
-  cardBtnFavorite[i].addEventListener('click', function () {
-    var cardBtnFavoriteSelected = cardBtnFavorite[i].classList.contains('card__btn-favorite--selected');
-    if (cardBtnFavoriteSelected) {
-      cardBtnFavorite[i].classList.remove('card__btn-favorite--selected');
-    } else {
-      cardBtnFavorite[i].classList.add('card__btn-favorite--selected');
-    }
+var cardFavoriteButtons = document.querySelectorAll('.card__btn-favorite');
+for (var i = 0; i < cardFavoriteButtons.length; i++) {
+  cardFavoriteButtons[i].addEventListener('click', function (evt) {
+    evt.target.classList.toggle('card__btn-favorite--selected');
   }
   );
 }
+
+// Добавление товара в корзину
+
+// При нажатии на кнопку "Добавить +1" с классом card__btn
+// карточка, соответствующая выбранному товару, добавляется в блок корзины.
+// Если в корзине уже есть карточка, соответствующая выбранному товару, то
+// количество выбранного товара увеличивается на единицу.
+
+// При нажатии на кнопку "Добавить +1" с классом card__btn
+var cardButtons = document.querySelectorAll('.card__btn');
+for (var i = 0; i < cardButtons.length; i++) {
+  cardButtons[i].addEventListener('click', function (evt) {
+    // карточка, соответствующая выбранному товару, добавляется в блок корзины.
+    var index = evt.target.closest('article').dataset.id;
+    renderElementsByTemplate([products[index]], goodsCards, renderProductsOrder, templateOrderCard);
+    // Надо скопировать карточку, на которой произошло событие и вставить в goodsCards
+    // Если в корзине уже есть карточка, соответствующая выбранному товару /сравнить циклом по параметрам/, то
+    // количество выбранного товара увеличивается на единицу card-order__count
+  }
+  );
+}
+
+// Управление количеством определенного товара в корзине;
+
+// Переключение вкладок в форме оформления заказа;
