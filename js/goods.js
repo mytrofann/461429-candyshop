@@ -203,6 +203,7 @@ var renderProductsOrder = function (product, productsItem) {
   productsItem.querySelector('img').src = product.picture;
   productsItem.querySelector('img').alt = product.name;
   productsItem.querySelector('.card-order__price').textContent = product.price + ' ₽';
+  productsItem.querySelector('.card-order__count').value = product.amount;
 };
 
 var renderElementsByTemplate = function (products, block, render, template) {
@@ -214,7 +215,8 @@ var renderElementsByTemplate = function (products, block, render, template) {
   }
   block.appendChild(fragment);
 };
-renderElementsByTemplate(generateProducts(NUMBER_OF_PRODUCTS), catalogCards, renderProduct, templateCatalogCard);
+var productsCards = generateProducts(NUMBER_OF_PRODUCTS);
+renderElementsByTemplate(productsCards, catalogCards, renderProduct, templateCatalogCard);
 renderElementsByTemplate(generateProducts(NUMBER_OF_PRODUCTS_ORDER), goodsCards, renderProductsOrder, templateOrderCard);
 
 // Добавление выбранного товара в избранное
@@ -226,28 +228,49 @@ for (var i = 0; i < cardFavoriteButtons.length; i++) {
   );
 }
 
-// Добавление товара в корзину
-
-// При нажатии на кнопку "Добавить +1" с классом card__btn
-// карточка, соответствующая выбранному товару, добавляется в блок корзины.
-// Если в корзине уже есть карточка, соответствующая выбранному товару, то
-// количество выбранного товара увеличивается на единицу.
-
-// При нажатии на кнопку "Добавить +1" с классом card__btn
+// Добавление выбранного товара в корзину и управление товаром в корзине
 var cardButtons = document.querySelectorAll('.card__btn');
 for (var i = 0; i < cardButtons.length; i++) {
   cardButtons[i].addEventListener('click', function (evt) {
-    // карточка, соответствующая выбранному товару, добавляется в блок корзины.
-    var index = evt.target.closest('article').dataset.id;
-    console.log(index);
-    renderElementsByTemplate([products[index]], goodsCards, renderProductsOrder, templateOrderCard);
-    // Надо скопировать карточку, на которой произошло событие и вставить в goodsCards
-    // Если в корзине уже есть карточка, соответствующая выбранному товару /сравнить циклом по параметрам/, то
-    // количество выбранного товара увеличивается на единицу card-order__count
+    var productsCardsOrder = document.querySelectorAll('.goods_card');
+    var names = document.querySelectorAll('.goods_card .card-order__title');
+    var name = evt.target.parentNode.parentNode.parentNode.querySelector('.card__header').querySelector('.card__title').textContent;
+    for (var i = 0; i < productsCardsOrder.length; i++) {
+      if (name === names[i].textContent) {
+        var valueAmount = Number(productsCardsOrder[i].querySelector('.card-order__count').value);
+        if (valueAmount < PRODUCT_AMOUNT.max) {
+          productsCardsOrder[i].querySelector('.card-order__count').value = valueAmount + 1;
+        }
+        break;
+      }
+      if (i === productsCardsOrder.length - 1) {
+        var card = evt.target.parentNode.parentNode.parentNode;
+        var picture = card.querySelector('.card__img').src;
+        var price = card.querySelector('.card__price-block').textContent;
+        var newProduct = {
+          name: name,
+          picture: picture,
+          price: price,
+          amount: 1
+        };
+        renderElementsByTemplate([newProduct], goodsCards, renderProductsOrder, templateOrderCard);
+      }
+    }
+    updateOrderTitle();
   }
   );
 }
 
-// Управление количеством определенного товара в корзине;
-
-// Переключение вкладок в форме оформления заказа;
+// Получить кол-во товаров в корзине
+var updateOrderTitle = function () {
+  var orderAmounts = document.querySelectorAll('.goods_card .card-order__count');
+  var caunts = 0;
+  for (var i = 0; i < orderAmounts.length; i++) {
+    caunts += Number(orderAmounts[i].value);
+  }
+  if (caunts > 0) {
+    var order = document.querySelector('.main-header__basket');
+    order.textContent = 'Товаров ' + caunts;
+  }
+};
+updateOrderTitle();
