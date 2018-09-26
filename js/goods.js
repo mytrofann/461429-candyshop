@@ -115,9 +115,8 @@ var getRandomLengthList = function (list) {
 // Функция, для создания массива из 26 сгенерированных объектов. Каждый объект массива представляет собой описание товара.
 var generateProducts = function (amount) {
   var products = [];
-  var oneProduct = {};
   for (var i = 0; i < amount; i++) {
-    oneProduct = {
+    products.push({
       name: getRandomElement(PRODUCT_NAMES),
       picture: getRandomElement(PRODUCT_IMAGES),
       amount: getRandomInteger(PRODUCT_AMOUNT.min, PRODUCT_AMOUNT.max),
@@ -132,8 +131,7 @@ var generateProducts = function (amount) {
         energy: getRandomInteger(PRODUCT_NUTRITION_FACTS.energy.min, PRODUCT_NUTRITION_FACTS.energy.max),
         contents: getRandomLengthList(PRODUCT_NUTRITION_FACTS.contents).join()
       }
-    };
-    products.push(oneProduct);
+    });
   }
   return products;
 };
@@ -144,7 +142,7 @@ var catalogLoad = catalogCards.querySelector('.catalog__load');
 catalogLoad.classList.add('visually-hidden');
 
 // Создайте DOM-элементы, соответствующие фотографиям и заполните их данными из массива
-var templateCatalogCard = document.querySelector('#card').content.querySelector('.catalog__card');
+var templateCatalogCard = document.querySelector('#card').content.querySelector('.catalog__card').cloneNode(true);
 
 var renderProduct = function (product, productsItem, index) {
   var amount = product.amount;
@@ -196,9 +194,9 @@ var goodsCardEmpty = goodsCards.querySelector('.goods__card-empty');
 goodsCardEmpty.classList.add('visually-hidden');
 
 // На основе шаблона goods_card создайте DOM-элементы товаров, добавленных в корзину.
-var templateOrderCard = document.querySelector('#card-order').content.querySelector('.goods_card');
+var templateOrderCard = document.querySelector('#card-order').content.querySelector('.goods_card').cloneNode(true);
 
-var renderProductsOrder = function (product, productsItem) {
+var renderProductsBasket = function (product, productsItem) {
   productsItem.querySelector('.card-order__title').textContent = product.name;
   productsItem.querySelector('img').src = product.picture;
   productsItem.querySelector('img').alt = product.name;
@@ -217,7 +215,7 @@ var renderElementsByTemplate = function (products, block, render, template) {
 };
 var productsCards = generateProducts(NUMBER_OF_PRODUCTS);
 renderElementsByTemplate(productsCards, catalogCards, renderProduct, templateCatalogCard);
-renderElementsByTemplate(generateProducts(NUMBER_OF_PRODUCTS_ORDER), goodsCards, renderProductsOrder, templateOrderCard);
+renderElementsByTemplate(generateProducts(NUMBER_OF_PRODUCTS_ORDER), goodsCards, renderProductsBasket, templateOrderCard);
 
 // Добавление выбранного товара в избранное
 var cardFavoriteButtons = document.querySelectorAll('.card__btn-favorite');
@@ -229,48 +227,177 @@ for (var i = 0; i < cardFavoriteButtons.length; i++) {
 }
 
 // Добавление выбранного товара в корзину и управление товаром в корзине
-var cardButtons = document.querySelectorAll('.card__btn');
+
+// При нажатии на кнопку "Добавить +1" с классом card__btn
+// карточка, соответствующая выбранному товару, добавляется в блок корзины.
+// Если в корзине уже есть карточка, соответствующая выбранному товару, то
+// количество выбранного товара увеличивается на единицу.
+/*
+var cardButtons = catalogCards.querySelectorAll('.card__btn');
 for (var i = 0; i < cardButtons.length; i++) {
   cardButtons[i].addEventListener('click', function (evt) {
+    var index = evt.target.closest('article').dataset.id;
+    var productCard = evt.target.closest('article');
     var productsCardsOrder = document.querySelectorAll('.goods_card');
-    var names = document.querySelectorAll('.goods_card .card-order__title');
-    var name = evt.target.parentNode.parentNode.parentNode.querySelector('.card__header').querySelector('.card__title').textContent;
-    for (var i = 0; i < productsCardsOrder.length; i++) {
-      if (name === names[i].textContent) {
-        var valueAmount = Number(productsCardsOrder[i].querySelector('.card-order__count').value);
-        if (valueAmount < PRODUCT_AMOUNT.max) {
-          productsCardsOrder[i].querySelector('.card-order__count').value = valueAmount + 1;
-        }
-        break;
-      }
-      if (i === productsCardsOrder.length - 1) {
-        var card = evt.target.parentNode.parentNode.parentNode;
-        var picture = card.querySelector('.card__img').src;
-        var price = card.querySelector('.card__price-block').textContent;
-        var newProduct = {
-          name: name,
-          picture: picture,
-          price: price,
-          amount: 1
-        };
-        renderElementsByTemplate([newProduct], goodsCards, renderProductsOrder, templateOrderCard);
-      }
+    if (productsCardsOrder[index]) {
+      productsCardsOrder[index].querySelector('.card-order__count').value += 1;
+    } else {
+      Object.assign(productsCardsOrder[index], products[index]);
+      productsCardsOrder.push(productCard);
     }
-    updateOrderTitle();
+  });
+}
+*/
+// Управление товаром в корзине
+var orderDecreaseButtons = goodsCards.querySelectorAll('.card-order__btn--decrease');
+var orderIncreaseButtons = goodsCards.querySelectorAll('.card-order__btn--increase');
+var orderCloseButtons = goodsCards.querySelectorAll('.card-order__close');
+
+var cardsBasket = goodsCards.querySelector('.goods_card');
+var cardsOrderedBasket = function () {
+  if (cardsBasket) {
+    goodsCards.querySelector('.goods__card-empty').classList.add('visually-hidden');
+  } else {
+    goodsCards.querySelector('.goods__card-empty').classList.remove('visually-hidden');
+  }
+};
+cardsOrderedBasket();
+
+for (var i = 0; i < orderDecreaseButtons.length; i++) {
+  orderDecreaseButtons[i].addEventListener('click', function (evt) {
+    var goodsCard = evt.target.closest('.goods_card');
+    var cardOrderCount = goodsCard.querySelector('.card-order__count');
+    if (cardOrderCount.value > 1) {
+      cardOrderCount.value--;
+    } else {
+      goodsCard.remove();
+    }
   }
   );
 }
 
-// Получить кол-во товаров в корзине
-var updateOrderTitle = function () {
-  var orderAmounts = document.querySelectorAll('.goods_card .card-order__count');
-  var caunts = 0;
-  for (var i = 0; i < orderAmounts.length; i++) {
-    caunts += Number(orderAmounts[i].value);
+for (var i = 0; i < orderIncreaseButtons.length; i++) {
+  orderIncreaseButtons[i].addEventListener('click', function (evt) {
+    var goodsCard = evt.target.closest('.goods_card');
+    var cardOrderCount = goodsCard.querySelector('.card-order__count');
+    if (cardOrderCount.value < PRODUCT_AMOUNT.max) {
+      cardOrderCount.value++;
+    } else {
+      cardOrderCount.value = PRODUCT_AMOUNT.max;
+    }
   }
-  if (caunts > 0) {
-    var order = document.querySelector('.main-header__basket');
-    order.textContent = 'Товаров ' + caunts;
+  );
+}
+
+for (var i = 0; i < orderCloseButtons.length; i++) {
+  orderCloseButtons[i].addEventListener('click', function (evt) {
+    evt.target.closest('.goods_card').remove();
+  }
+  );
+}
+
+// Переключение вкладок в форме оформления заказа
+// Выбор способа оплаты
+var payment = document.querySelector('.payment');
+var paymentCardButton = payment.querySelector('#payment__card');
+var paymentCashButton = payment.querySelector('#payment__cash');
+var paymentCardWrap = payment.querySelector('.payment__card-wrap');
+var paymentCashWrap = payment.querySelector('.payment__cash-wrap');
+var inputsPayment = paymentCardWrap.querySelectorAll('input');
+
+var inputsSet = function (inputs, state) {
+  for (var i = 0; i < inputs.length; i++) {
+    inputs[i].disabled = state;
   }
 };
-updateOrderTitle();
+
+paymentCardButton.addEventListener('click', function () {
+  paymentCashWrap.classList.add('visually-hidden');
+  paymentCardWrap.classList.remove('visually-hidden');
+  inputsSet(inputsPayment, false);
+});
+
+paymentCashButton.addEventListener('click', function () {
+  paymentCashWrap.classList.remove('visually-hidden');
+  paymentCardWrap.classList.add('visually-hidden');
+  inputsSet(inputsPayment, true);
+});
+
+// Валидация банковской карты по алгоритму Луна
+var validateCard = function (cardNumber) {
+  if (cardNumber === '') {
+    return false;
+  }
+  var digits = cardNumber.split('');
+  var value;
+  var checkSum = 0;
+  for (i = 0; i < cardNumber.length; i++) {
+    var number = +digits[i];
+    if (i % 2 === 0) {
+      value = number * 2;
+      if (value > 9) {
+        value -= 9;
+      }
+      checkSum += value;
+    } else {
+      checkSum += number;
+    }
+  }
+  return checkSum % 10 === 0;
+};
+
+// Валидация карты на поле с номером карты
+var cardNumberInput = payment.querySelector('#payment__card-number');
+cardNumberInput.addEventListener('blur', function () {
+  if (validateCard(cardNumberInput.value)) {
+    document.querySelector('.payment__card-status').textContent = 'Номер введен верно';
+  } else {
+    document.querySelector('.payment__card-status').textContent = 'Не определён';
+  }
+});
+
+// Выбор способа доставки
+var deliver = document.querySelector('.deliver');
+var deliverStoreButton = deliver.querySelector('#deliver__store');
+var deliverСourierButton = deliver.querySelector('#deliver__courier');
+var deliverStore = deliver.querySelector('.deliver__store');
+var deliverСourier = deliver.querySelector('.deliver__courier');
+var inputsStore = deliverStore.querySelectorAll('input');
+var inputsСourier = deliverСourier.querySelectorAll('input');
+
+deliverStoreButton.addEventListener('click', function () {
+  deliverСourier.classList.add('visually-hidden');
+  deliverStore.classList.remove('visually-hidden');
+  inputsSet(inputsStore, false);
+  inputsSet(inputsСourier, true);
+});
+
+deliverСourierButton.addEventListener('click', function () {
+  deliverСourier.classList.remove('visually-hidden');
+  deliverStore.classList.add('visually-hidden');
+  inputsSet(inputsStore, true);
+  inputsSet(inputsСourier, false);
+});
+
+// Добавление карты согласно станции метро
+var deliverStoreMapImg = document.querySelector('.deliver__store-map-img');
+for (var i = 0; i < inputsStore.length; i++) {
+  inputsStore[i].addEventListener('click', function (evt) {
+    deliverStoreMapImg.src = 'img/map/' + evt.target.value + '.jpg';
+  }
+  );
+}
+
+// Первая фаза работы фильтра по цене
+var range = document.querySelector('.range');
+var rangeFilter = range.querySelector('.range__filter');
+var rangeButtonLeft = range.querySelector('.range__btn--left');
+var rangeButtonRight = range.querySelector('.range__btn--right');
+var rangePriceMin = range.querySelector('.range__price--min');
+var rangePriceMax = range.querySelector('.range__price--max');
+
+
+range.addEventListener('mouseup', function () {
+  rangePriceMin.textContent = Math.floor(100 * (rangeButtonLeft.offsetLeft) / rangeFilter.offsetWidth);
+  rangePriceMax.textContent = Math.ceil(100 * (rangeButtonRight.offsetLeft + rangeButtonRight.offsetWidth) / rangeFilter.offsetWidth);
+});
